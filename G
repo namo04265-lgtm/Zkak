@@ -1,0 +1,24 @@
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
+
+local button = script.Parent
+local normalSpeed = 16       -- ความเร็วปกติ
+local sprintSpeed = 30       -- ความเร็วตอนวิ่งเร็ว
+local isSprinting = false
+
+button.Text = "Sprint"
+
+button.MouseButton1Click:Connect(function()
+    isSprinting = not isSprinting
+
+    if isSprinting then
+        hum.WalkSpeed = sprintSpeed
+        button.Text = "Stop"
+        button.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+    else
+        hum.WalkSpeed = normalSpeed
+        button.Text = "Sprint"
+        button.BackgroundColor3 = Color3.fromRGB(80, 255, 80)
+    end
+end)
