@@ -1,0 +1,212 @@
+--// Roblox UI Script (Mobile Friendly)
+
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+pcall(function()
+    PlayerGui.MyUI:Destroy()
+end)
+
+------------------------------------------------
+-- 🖥 GUI หลัก
+------------------------------------------------
+
+local gui = Instance.new("ScreenGui", PlayerGui)
+gui.Name = "MyUI"
+gui.ResetOnSpawn = false
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 260, 0, 340)
+main.Position = UDim2.new(0.05, 0, 0.2, 0)
+main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+
+------------------------------------------------
+-- 🏷 Title
+------------------------------------------------
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "MY SCRIPT UI"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundColor3 = Color3.fromRGB(10,10,10)
+title.BorderSizePixel = 0
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+
+local toggleUI = Instance.new("TextButton", title)
+toggleUI.Size = UDim2.new(0, 40, 1, 0)
+toggleUI.Position = UDim2.new(1, -40, 0, 0)
+toggleUI.Text = "-"
+toggleUI.TextSize = 20
+toggleUI.BackgroundColor3 = Color3.fromRGB(50,50,50)
+toggleUI.TextColor3 = Color3.new(1,1,1)
+
+------------------------------------------------
+-- 📦 Content
+------------------------------------------------
+
+local content = Instance.new("Frame", main)
+content.Position = UDim2.new(0, 0, 0, 40)
+content.Size = UDim2.new(1, 0, 1, -40)
+content.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", content)
+layout.Padding = UDim.new(0, 8)
+
+local padding = Instance.new("UIPadding", content)
+padding.PaddingTop = UDim.new(0, 10)
+padding.PaddingLeft = UDim.new(0, 10)
+
+------------------------------------------------
+-- 🔽 ย่อ / ขยาย UI
+------------------------------------------------
+
+local opened = true
+toggleUI.MouseButton1Click:Connect(function()
+    opened = not opened
+    content.Visible = opened
+    toggleUI.Text = opened and "-" or "+"
+    main.Size = opened and UDim2.new(0,260,0,340) or UDim2.new(0,260,0,40)
+end)
+
+------------------------------------------------
+-- 🔧 สถานะฟังก์ชัน
+------------------------------------------------
+
+local Functions = {
+    AutoFarm = false,
+    Teleport75 = false,
+    Teleport0 = false,
+    Teleport150 = false,
+    TeleportSword = false,
+    AntiAFK = false
+}
+
+------------------------------------------------
+-- 🤖 Auto Farm
+------------------------------------------------
+
+local AutoFarmLoaded = false
+
+local function AutoFarmFunction(state)
+    Functions.AutoFarm = state
+
+    if state and not AutoFarmLoaded then
+        AutoFarmLoaded = true
+        task.spawn(function()
+            wait(25)
+            loadstring(game:HttpGet(
+                "https://raw.githubusercontent.com/NBTHUB594/NBTHUB-Script/refs/heads/main/Omini_X_farm.lua"
+            ))()
+        end)
+    end
+end
+
+------------------------------------------------
+-- 🚀 Teleport
+------------------------------------------------
+
+local function TeleportTo(pos)
+    local char = Player.Character or Player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    hrp.CFrame = CFrame.new(pos)
+end
+
+------------------------------------------------
+-- 🛡 Anti AFK
+------------------------------------------------
+
+local antiAfkConnection
+local antiAfkThread
+
+local function AntiAFKFunction(state)
+    Functions.AntiAFK = state
+
+    if not state then
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
+            antiAfkConnection = nil
+        end
+        antiAfkThread = nil
+        return
+    end
+
+    antiAfkThread = task.spawn(function()
+        while Functions.AntiAFK do
+            task.wait(30)
+            local char = Player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.HumanoidRootPart
+                hrp.CFrame *= CFrame.new(0, 0.5, 0)
+                task.wait(0.5)
+                hrp.CFrame *= CFrame.new(0, -0.5, 0)
+            end
+        end
+    end)
+
+    antiAfkConnection = Player.Idled:Connect(function()
+        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    end)
+end
+
+------------------------------------------------
+-- 🔘 ปุ่ม Toggle
+------------------------------------------------
+
+local function CreateToggle(text, callback, defaultOn)
+    local btn = Instance.new("TextButton", content)
+    btn.Size = UDim2.new(0, 220, 0, 40)
+    btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    local state = defaultOn or false
+    btn.Text = text .. (state and " : ON" or " : OFF")
+
+    callback(state)
+
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = text .. (state and " : ON" or " : OFF")
+        callback(state)
+    end)
+end
+
+------------------------------------------------
+-- ➕ ปุ่มทั้งหมด
+------------------------------------------------
+
+CreateToggle("Auto Farm", function(v)
+    AutoFarmFunction(v)
+end, true) -- ⭐ เปิดอัตโนมัติ
+
+CreateToggle("Teleport75", function(v)
+    if v then TeleportTo(Vector3.new(-401, -138, 1119)) end
+end)
+
+CreateToggle("Teleport0", function(v)
+    if v then TeleportTo(Vector3.new(-647, 7, -3310)) end
+end)
+
+CreateToggle("Teleport150", function(v)
+    if v then TeleportTo(Vector3.new(5130, -454, -3274)) end
+end)
+
+CreateToggle("Teleport Sword", function(v)
+    if v then TeleportTo(Vector3.new(5317, -466, -287)) end
+end)
+
+CreateToggle("Anti AFK", function(v)
+    AntiAFKFunction(v)
+end)
